@@ -15,6 +15,10 @@ A simple example of Clojure's ~let~ assignment:
 
 ** Sequential Destructuring
 
+#+BEGIN_HTML
+<!--more-->
+#+END_HTML
+
 To omit trailing values in seq:
 #+BEGIN_SRC clojure
   (let [[x y z] [1 2 3 4 5]]
@@ -28,10 +32,6 @@ To omit arbitrary values in seq:
     (str x y z))
   ;; => "145"
 #+END_SRC
-
-#+BEGIN_HTML
-<!--more-->
-#+END_HTML
 
 To gather extra-positional values:
 #+BEGIN_SRC clojure
