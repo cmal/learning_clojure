@@ -1,0 +1,59 @@
+#+TITLE: Differences Between Lambda functions and literal functions
+#+DATE: <2016-11-06 Sun 23:00>
+#+TAGS: ClojureBasics,
+#+LAYOUT: post
+#+CATEGORIES: clojure
+* Differences
+There are a few (as far as I know) differences between lambda functions (~fn~) and literal functions (~#(...)~):
+
+1. By definition, literal functions are the reader form(or sugar) of Clojure compiler, but lambda functions are not.
+
+   So ~read-string~ can be applied to literal functions.
+   #+BEGIN_SRC clojure
+     (read-string "#(inc %)")
+     ;; => (fn* [p1__37093#] (inc p1__37093#))
+   #+END_SRC
+
+2. [[../destructuring_assignment/#sec-1-3][Last time]] I say that ~fn~ implies a ~do~ in its body.
+
+   #+BEGIN_SRC clojure
+     ((fn [x]
+         (prn x)
+         x) 3)
+   #+END_SRC
+   but literal functions must explicitly use ~do~ to wrap the two actions:
+   #+BEGIN_SRC clojure
+     (#(do (prn %)
+            %) 3)
+   #+END_SRC
+
+3. Literal functions cannot explicitly do arity variadic:
+
+   ~fn~ can do this:
+   #+BEGIN_SRC clojure
+     (fn []
+       (do sth1...)
+       [x]
+       (do sth2...)
+       [x y]
+       (do sth3...)
+       [x y & rest]
+       (do sth4...))
+   #+END_SRC
+   but literal functions can not.
+   However, literal functions can define a variadic function by using ~%&~:
+   #+BEGIN_SRC clojure
+     #(- % (apply + %&))
+     ;; this is exactly like
+     (fn [x & rest]
+       (- x (apply + rest)))
+   #+END_SRC
+
+4. Literal functions cannot be nested:
+
+   #+BEGIN_SRC clojure
+     ;; You CANNOT do this:
+     #(#(inc %))
+     ;; but you can use nest lambda functions:
+     (fn [x] (fn [y] (inc y)))
+   #+END_SRC

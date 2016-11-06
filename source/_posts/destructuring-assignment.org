@@ -1,0 +1,126 @@
+#+TITLE: Clojure Destructuring Assignment
+#+DATE: <2016-11-06 Sun 22:00>
+#+TAGS: ClojureBasics,
+#+LAYOUT: post
+#+CATEGORIES: clojure
+
+* Clojure Destructuring Assignment
+
+A simple example of Clojure's ~let~ assignment:
+#+BEGIN_SRC clojure
+  (let [x 8]
+   (+ 10 x))
+  ;; => 18
+#+END_SRC
+
+** Sequential Destructuring
+
+To omit trailing values in seq:
+#+BEGIN_SRC clojure
+  (let [[x y z] [1 2 3 4 5]]
+    (str x y z))
+  ;; => "123"
+#+END_SRC
+
+To omit arbitrary values in seq:
+#+BEGIN_SRC clojure
+  (let [[x _ _ [y z]] [ 1 2 3 [4 5]]]
+    (str x y z))
+  ;; => "145"
+#+END_SRC
+
+#+BEGIN_HTML
+<!--more-->
+#+END_HTML
+
+To gather extra-positional values:
+#+BEGIN_SRC clojure
+  (let [[x & rest] [1 2 3]]
+    rest)
+  ;; => (2 3)
+#+END_SRC
+
+To retain the destructured seq:
+#+BEGIN_SRC clojure
+  (let [[x _ z :as s] [1 2 3]]
+    s)
+  ;; => [1 2 3]
+#+END_SRC
+
+** Map Destructuring
+
+Map destructuring is not so intuitive as sequential destructuring.
+A common example:
+#+BEGIN_SRC clojure
+  (let [{a :a b :b c "foo"} {:a 1 :b 2 "foo" "bar"}]
+    (str a b c))
+  ;; => "12bar"
+#+END_SRC
+
+To destructure a seq using index:
+#+BEGIN_SRC clojure
+  (let [{x 3 y 2} [1 2 3 4 5]]
+    (str x y))
+  ;; => "43"
+#+END_SRC
+
+To destructure a nesting map:
+#+BEGIN_SRC clojure
+  (let [{{x :a} :b} {:b {:b 1 :a 2}}]
+    x)
+  ;; => 2
+  (let [{[x _ y] :b} {:b [1 2 3]}]
+    [x y])
+  ;; => [1 3]
+#+END_SRC
+
+Default values when not found:
+#+BEGIN_SRC clojure
+  (let [{k :unknown x :a :or {k "not found"}}
+        {:a 1 :b 2}]
+    (str k x))
+  ;; => "not found1"
+#+END_SRC
+
+Binding using ~:keys~, ~:strs~, and ~:syms~:
+#+BEGIN_SRC clojure
+  (let [mp {:a 1 :b 2 :c 3 "d" 4 "e" 5 "f" 6 'g 7 'h 8}
+        {:keys [a b c]} mp
+        {:strs [d e f]} mp
+        {:syms [g h]} mp]
+    (str a b c d e f g h))
+  ;; => "12345678"
+#+END_SRC
+
+~&~ will destructure rest sequences as map k/v pairs:
+#+BEGIN_SRC clojure
+  (let [[k v & {:keys [b c d]}] [:a 1 :b 2 :c 3 :d 4]]
+    [(str k v) (str b c d)])
+  ;; => [":a1" "234"]
+#+END_SRC
+
+Collections can be used as keyword for destructuring:
+(a not so intuitive example)
+#+BEGIN_SRC clojure
+  (let [[& {x [:a 1]}] '([:a 1] 2)]
+    x)
+  ;; => 2
+#+END_SRC
+
+** Destructuring in ~fn~
+
+~fn~ implies a ~let~ in its assignment and a ~do~ in its body.
+Actually, you can think the lambda function ~fn~ structure
+#+BEGIN_SRC clojure
+  ((fn [x]
+     (+ 10 x))
+   8)
+#+END_SRC
+as something like:
+#+BEGIN_SRC clojure
+  (let [x 8]
+    (do
+      (+ 10 x)))
+#+END_SRC
+Then EVERYTHING ABOVE can be used in destructuring assignments of ~fn~, just like in ~let~.
+But ~fn~ can do more, because of [[http://clojure-doc.org/articles/language/functions.html#multi-arity-functions][arity variadic]].
