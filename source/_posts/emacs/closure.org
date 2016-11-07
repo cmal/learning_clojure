@@ -1,0 +1,25 @@
+#+TITLE: Closure in Elisp, Lexical Binding After Emacs 24.1
+#+DATE: <2016-11-07 Mon 23:25>
+#+TAGS: Emacs,
+#+LAYOUT: post
+#+CATEGORIES: emacs
+
+Lexical binding means form a closure in a (lambda) function body.
+Default GNU Emacs will not use lexical binding.
+
+So,
+#+BEGIN_SRC elisp
+(default-value 'lexical-binding)
+;; => nil
+(lambda (x) (* x x))
+;; => (lambda (x) (* x x))
+#+END_SRC
+
+But one can set variable ~lexical-binding~ to t, to make Emacs use
+lexical-binding. Lexical binding makes lambda function form a closure.
+#+BEGIN_SRC elisp
+(setq lexical-binding t)
+;; => t
+(lambda (x) (* x x))
+;; => (closure (t) (x) (* x x))
+#+END_SRC
