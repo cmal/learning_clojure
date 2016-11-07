@@ -4,23 +4,25 @@
 #+LAYOUT: post
 #+CATEGORIES: emacs
 
-The ~defun~ in Emacs will bind a symbol to a function body, whereas
-the ~fmakeunbound~ will unbind a symbol from the bound function body.
+* Bind function body to a symbol
 
-The ~foundp~ checks whether a symbol has already bound
-to a function.
+  The ~defun~ in Emacs will bind a symbol to a function body, whereas
+  the ~fmakeunbound~ will unbind a symbol from the bound function body.
 
-Look at the example below:
-#+BEGIN_SRC elisp
-(defun foo (x) x)
-;; => foo
-(fboundp 'foo)
-;; => t
-(foo 1)
-;; => 1
-(fmakunbound 'foo) ;; fmakunbound will unbound a symbol
-;; => foo
-(fboundp 'foo)
-;; => nil
-(foo 1) ;; error
-#+END_SRC
+  The ~foundp~ checks whether a symbol has already bound
+  to a function.
+
+  Look at the example below:
+  #+BEGIN_SRC elisp
+    (defun foo (x) x)
+    ;; => foo
+    (fboundp 'foo)
+    ;; => t
+    (foo 1)
+    ;; => 1
+    (fmakunbound 'foo) ;; fmakunbound will unbound a symbol
+    ;; => foo
+    (fboundp 'foo)
+    ;; => nil
+    (foo 1) ;; error
+  #+END_SRC
