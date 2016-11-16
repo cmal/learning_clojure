@@ -24,3 +24,9 @@
     (lambda (x) (* x x))
     ;; => (closure (t) (x) (* x x))
   #+END_SRC
+
+  When writing Emacs Lisp extentions, one can set lexical-binding in the first
+  line of `.el` files to force a lexical-binding context. e.g.
+  #+BEGIN_SRC 
+    ;;; some.el --- some extention for Emacs-lisp  -*- lexical-binding: t; -*-
+  #+END_SRC
