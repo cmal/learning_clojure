@@ -37,7 +37,7 @@
 
   But one can set variable ~lexical-binding~ to t, to make Emacs use
   lexical-binding. Lexical binding makes lambda function form a closure.
-  #+BEGIN_SRC elisp
+  #+BEGIN_SRC emacs-lisp
     (setq lexical-binding t)
     ;; => t
     (lambda (x) (* x x))
