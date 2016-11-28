@@ -13,7 +13,7 @@
   to a function.
 
   Look at the example below:
-  #+BEGIN_SRC elisp
+  #+BEGIN_SRC emacs-lisp
     (defun foo (x) x)
     ;; => foo
     (fboundp 'foo)

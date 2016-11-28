@@ -6,10 +6,29 @@
 
 * Lexical Binding
   Lexical binding means form a closure in a (lambda) function body.
-  Default GNU Emacs will not use lexical binding.
+
+  What is lexical binding? Take a look at these examples:
+
+  #+BEGIN_SRC emacs-lisp
+    (let ((x 1))    ; x is lexically bound.
+      (+ x 3)) ;; => 4
+    (setq x 3)  ;; => 3
+
+    (defun getx ()
+      x) ;; => getx
+    (getx) ;; => 3
+    (let ((x 1))    ; x is lexically bound.
+      (getx)) ;; => 1
+  #+END_SRC
+  The body in ~let~ forms a context in which ~x~ was bound to 1,
+  rather than 3 in global context.
+
+* Emacs Lexical-Binding Settings
+  Lexical binding is a realtive new feature introduced into GNU Emacs,
+  in version 24.1. Default GNU Emacs will not use lexical binding.
 
   So,
-  #+BEGIN_SRC elisp
+  #+BEGIN_SRC emacs-lisp
     (default-value 'lexical-binding)
     ;; => nil
     (lambda (x) (* x x))
