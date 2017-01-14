@@ -1,5 +1,5 @@
 #+TITLE: Common Pitfalls of Quartzite
-#+DATE: <2016-11-06 Sun 22:00>
+#+DATE: <2017-01-14 Sat 15:00>
 #+TAGS: ClojureLibs,
 #+LAYOUT: post
 #+CATEGORIES: clojure
