@@ -1,0 +1,39 @@
+#+TITLE: Common Pitfalls of Quartzite
+#+DATE: <2016-11-06 Sun 22:00>
+#+TAGS: ClojureLibs,
+#+LAYOUT: post
+#+CATEGORIES: clojure
+
+* Quartzite
+
+When using Quartzite to scheduling your jobs, first you should read its [[http://clojurequartz.info/][docs]].
+
+However, there are things that doesn't clearly described. Here we will talk some of the things which are useful but not covered by the docs.
+
+In Quartzite, we define ~jobs~ that would be ~triggered~ on a defined ~scheduler~. So we define described jobs and triggers in some scheduler to arrange them.
+
+** Multiple Triggers Point to a Same Job
+
+#+BEGIN_HTML
+<!--more-->
+#+END_HTML
+
+Sometimes we want one job to be triggered by different strategies. Inevitably, we will define multiple triggers which will trigger a same job.
+But Quartzite won't let a job with same key to be triggered by multiple triggers. So we should define the job multiple times and use distinct keys to identify jobs. Surely the triggers are also defined with distinct keys. Then we can ~(schedule s job1 trigger1)~ and ~(schedule s job2 trigger2)~ and so one.
+
+Done!
+
+** Interval
+
+Sometimes we will define jobs that runs ~(monday-through-friday)~, this call seems have defined a job that runs every workday, especially when followed by ~(starting-daily-at (time-of-day 9 00 00))~ to define a running time. But this is not true. We MUST use ~(with-interval-in-days 1)~ to explicitly define the interval between jobs are triggered. Otherwise, you will probably find the job being triggered every minute after scheduled.
+
+** Misfires
+If you schedule a job which will be triggered with short intervals which will probably been delayed sometimes, or the results will rely on the order or count of the jobs, or your jobs will pause and resume at some time, or for other reasons which are not uncommon, you will probably want to use misfires to tell the scheduler whether it should rerun or ignore the job it has missed.
+
+There are many misfire strategies provided by Quartzite. But you should keep in mind that misfires are defined by schedulers. In other words, whether a misfire strategy is available depends on the scheduler you are using, some misfire strategies cannot be run in some schedulers. For example, the ~with-misfire-handling-instruction-next-with-remaining-count~ strategy can only be run in the simple scheduler, i.e. ~clojurewerkz.quartzite.schedule.simple~. You may find that there are some reasons that the simple scheduler defined more misfire strategies than other schedulers, and this is definitely right because the simple scheduler carrys less info than the others.
+
+** Logs
+When scheduling jobs, you may want to ~(:require [taoensso.timbre :as log])~ and then ~log/info~ something in your ~defjob~. This will give you some information whenever the job is triggered in the log file. You can then easily debug the unwanted triggering of your job.
+
+** ~start-now~
+New users sometimes will be confused of the job not being triggered immediately by ~trigger/start-now~. This is because the ~start-now~ here means start of scheduling of trigger, not start of triggering a job.

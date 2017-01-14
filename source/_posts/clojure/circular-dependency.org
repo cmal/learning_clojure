@@ -1,0 +1,7 @@
+#+TITLE: Solve Circular Denpendency in Clojure(Script)
+#+DATE: <2016-12-02 Fri 10:00>
+#+TAGS: ClojureBasics,
+#+LAYOUT: post
+#+CATEGORIES: clojure
+
+* What is circular dependency in Clojure and ClojureScript

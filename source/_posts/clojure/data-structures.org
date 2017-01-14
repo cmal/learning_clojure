@@ -1,0 +1,9 @@
+#+TITLE: Differences Between Lambda functions and literal functions
+#+DATE: <2016-12-02 Fri 10:00>
+#+TAGS: ClojureBasics,
+#+LAYOUT: post
+#+CATEGORIES: clojure
+
+* Persistent Structures
+  Several persistent data structures' finding time is O(log(32,n)),
+  because of the internal storage strategy of Clojure.
