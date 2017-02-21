@@ -1,0 +1,227 @@
+#+TITLE: Discusses in Slack re-frame channel
+#+DATE: <2016-12-05 Fri 17:00>
+#+TAGS: ClojureScript, Reagent, Re-frame, Slack
+#+LAYOUT: post
+#+CATEGORIES: clojurescript
+
+
+#+BEGIN_SRC markdown
+  cmal [10:22 PM]
+  Hi, I found the reagent and re-frame todomvc both have some `:keys` for `todo-item`, but I dont know what the keys means.  I've write the following code but the compiler keep warning me that `Every element in a seq should have a unique key`. Where is the problem? Thanks!
+
+  ```
+  (defn show-panel-child [id text]
+    [:div.show-panel-child
+     [:div.child-text
+      text]
+     [:div.child-delete
+      [re-com/md-icon-button
+       :md-icon-name "zmdi-delete"
+       :size :smaller
+       :on-click #(dispatch [:delete-show-panel-child id])
+      ]]]
+    )
+
+  (defn show-panel []
+    [:div.show-panel
+     (let [children @(subscribe [:show-panel-child])]
+       (for [child children
+             :let [id (:id child)
+                   text (:text child)
+                   div (show-panel-child id text)]]
+         ^{:key id}
+         [re-com/box
+          :child div
+          :style {
+                  :background-color "white"
+                  :margin-bottom "10px"
+                  }])
+       )])
+  ```
+
+  [10:23]
+  the code of  `todo-item` in `todomvc demo`  is as follows:
+  ```
+  (defn todo-item
+    []
+    (let [editing (reagent/atom false)]
+      (fn [{:keys [id done title]}]   ;;; <=== this :keys
+        [:li {:class (str (when done "completed ")
+                          (when @editing "editing"))}
+          [:div.view
+            [:input.toggle
+              {:type "checkbox"
+               :checked done
+               :on-change #(dispatch [:toggle-done id])}]
+            [:label
+              {:on-double-click #(reset! editing true)}
+              title]
+            [:button.destroy
+              {:on-click #(dispatch [:delete-todo id])}]]
+          (when @editing
+            [todo-input
+              {:class "edit"
+               :title title
+               :on-save #(dispatch [:save id %])
+               :on-stop #(reset! editing false)}])])))
+  ```
+
+
+  colin.yates [10:47 PM]
+  @cmal are you sure `id` is not nil? Also, calling `(show-panel-child id text)` would be more performant as `[show-panel-child id text]` at which point you might want to rename it to `panel-child` :wink:. Try adding `(.log js/console (clj->js children))` between the `for` and the `let`.
+
+  [10:50]
+  @cmal, ah, I think you are also confusing the use of `:keys` when destructuring in Clojure and also React’s requirement/wish that every child in a dynamic sequence has a unique `key`. For reagent (the Clojure binding to React), you can provide the `key` either as meta-data or as a `:key` in the props map. So `^{:key id} [comp…]` is equivalent to `[comp {:key id} …]` (1/2)
+
+  [10:51]
+  @cmal - the `:keys` in the todo example have nothing to do with React or reagent, but is simply a convenience Clojure provides called destructuring. If I have a map m of `{:a 1 :b 2 :c 3}` then if I want to interrogate that map I can do either `(:a m)` or `{:keys [a]}` which creates a local var called `a` and assigns it the value of `(:a m)`. (2/2)
+
+  [10:52]
+  @cmal - http://clojure.org/guides/destructuring for more info
+
+
+  ----------
+
+
+  cmal [3:42 PM]
+  The following code is working now. This problem seems to be related to the `events.cljs` not be auto re-compiled.
+  ----------- original question ----------
+  Hi, Is this problem related to that I did not use `dispatch-sync`? I have the following code and got an error of `:model in component 'input-text': Expected 'string|atom'. Got '{:query "PE", :stockid "600123.sh"}' ` after change the first two fields' value and press 'Send Input ==>' button. My intent is to make :model filed to be "600123.sh" and dispatch a `[:send-input {:query "PE" :stockid "600123.sh"}]`
+
+
+  ```
+  (defn drawer-child []
+    (let [query (reagent/atom "")
+          stockid (reagent/atom "")]
+      (fn [{:keys [id label]}]
+        [re-com/v-box
+         ;; :div.drawer-child
+         :children
+         [[re-com/box
+           :child
+           [:div.drawer-child-title id]],
+          [re-com/box
+           :child
+           [re-com/single-dropdown
+            :choices conf/home-choices
+            :model nil
+            :placeholder "Have a choice..."
+            :on-change #(reset! query %)]  ;; <== reset query
+           :style
+           {
+            :padding "0 10px"
+            }],
+          [re-com/box
+           :child
+           [:div.stockid-input
+            [:div.stockid-label "Secucode:"]
+            [re-com/input-text
+             :class (log @query @stockid)
+             :model stockid   ;; <== Error on validating :model! My intent is to make it an atom of string, but got an hashmap. I don't know why.
+             :on-change #(reset! stockid %)  ;; <== reset stockid
+             :placeholder "600123.SH"]]
+           :style
+           {
+            :padding "0 10px"
+            }],
+          ;; send input button
+          [re-com/box
+           :child
+           [re-com/button
+            :label "Send Input ==>"
+            :on-click #(dispatch
+                        [:send-input
+                         {:query @query
+                          :stockid @stockid}])  ;; <== dispatch an event, not work even use dispatch-sync
+            :class "btn-warning"
+            ]
+           :style
+           {
+            :padding "0 10px"
+            }],
+
+          ]
+         :gap "10px"
+         ]
+        ))
+    )
+  ```
+
+  ---------------
+
+
+
+  cmal [12:58 AM]
+  Hi, I've encountered a strange problem now. I am currently using the reframe-template to build a demo site. I changed the value of `db/default-db`,  and I re-run everything (lein figwheel dev, lein repl, chrome, even Emacs), but the app-db will not change.  If I try to `(dispatch-sync [:initialize-db])` manually, the app-db still will not change. BUT when I re-edited(even not change the value of `db/default-db`) the `db.cljs` and save and then `(dispatch-sync [:initialize-db])` manually the app-db CHANGED. BUT when I try to reload chrome page, and restart `lein figwheel dev`,  the app-db get BACK to the original value. It is very strange for me because the original value of app-state or default-db is in no where of my code now! I've tried this again and again and again, the app-db still remains the original value and will never change again except that I do the second `dispatch-sync` thing above. I tried to get the value of `db/default-db` in repl and found it remains the original value. Why? How can I deal with this problem? Thanks!
+
+
+  motor4ik [1:08 AM]
+  where are you looking db value?
+
+  cmal [1:08 AM]
+  Even the compiled `db.js` file is using a correct value.
+
+  [1:08]
+  reflisk
+
+  [1:08]
+  re-frisk
+
+  motor4ik [1:09 AM]
+  :slightly_smiling_face:
+
+  cmal [1:09 AM]
+  and repl
+
+  motor4ik [1:10 AM]
+  so you change db value and run figwheel but the value in re-frisk and repl is old?
+
+  cmal [1:11 AM]
+  no, repl's value is new now. I don't know why. But in re-frisk is still the old.
+
+  motor4ik [1:12 AM]
+  are you looking in the panel or separate browser's window?
+
+  cmal [1:13 AM]
+  I see, maybe a browser's cash rewrite the value to app-db
+
+  motor4ik [1:13 AM]
+  did you refresh page and reopen the re-frisk window?
+
+  [1:13]
+  yes. it's better to hot reload
+
+  cmal [1:13 AM]
+  I re-opened browser but does not clean the cache
+
+  [1:13]
+  I'll try that
+
+  [1:14]
+  bingo! that is the problem! thank you @motor4ik !
+
+  motor4ik [1:16 AM]
+  i think it can be confusing, i'll add in the todo list. because if you open re-frisk in separate window, and refresh the main app window, re-frisk window doesn't work anymore, i should make some tooltip for what
+
+  cmal [1:20 AM]
+  I think the problem confusing me is about the browser cache. Is the :app-db set on somewhere in browser cache? If not, no reason that I changed the code and restart the project but the app-db still the old. Only if the browser read the cache of app-db and then my code call some event to change the app-db based on the value cached so the new app-db is flushed. (edited)
+
+  motor4ik [1:21 AM]
+  where are you looking app-db in panel or separate window?
+
+  cmal [1:24 AM]
+  You mean panel or separate window of re-frisk? I am always using a seperate window. I'll try again and see whether the problem recur.
+
+  motor4ik [1:25 AM]
+  but. it doesn't matter, because the data in the app window, so you just have cached your application, re-frisk can't help here, ok, thank you
+
+  cmal [1:30 AM]
+  I am not doing cache. I tried again and found that the app did not cache the state, either. I just surmised that to happen. I wonder why  just now it works after I cleaned the cache. curious. (edited)
+
+  [1:31]
+  I am going to sleep, it is 01:30. Thank you today.
+
+  motor4ik [1:40 AM]
+  @cmal have a good sleep. sorry for my english, i mean browser cashed, not you :slightly_smiling_face:
+
+#+END_SRC
