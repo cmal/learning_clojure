@@ -1,4 +1,4 @@
-#+TITLE: Differences Between Lambda functions and literal functions
+#+TITLE: Differences Between Lambda Functions and Literal Functions
 #+DATE: <2016-11-06 Sun 23:00>
 #+TAGS: ClojureBasics,
 #+LAYOUT: post

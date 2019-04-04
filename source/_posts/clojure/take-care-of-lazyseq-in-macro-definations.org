@@ -1,0 +1,44 @@
+#+TITLE: Take Care of LazySeq in Closure
+#+DATE: <2017-05-05 Fri 23:00>
+#+TAGS: Clojure,
+#+LAYOUT: post
+#+CATEGORIES: clojure
+
+* LazySeq Inside a Closure
+
+If we have a closure binds a local to a LazySeq, then we may want to clear the reference in case that keeping realized LazySeqs may exhaust the memory.  For example:
+
+#+BEGIN_SRC clojure
+  (let [x (for [n (range)] (make-array Object 10000))
+        f (fn* [] (nth x 1e6))]
+    (f))
+  ;; => OutOfMemoryError Java heap space
+#+END_SRC
+
+To prevent this from happening, we shall use =^:once= hint and =fn*= macro, which make the Clojure compiler clear the closed-over references.
+
+#+BEGIN_SRC clojure
+  (let [x (for [n (range)] (make-array Object 10000))
+        f (^:once fn* [] (nth x 1e6))]
+    (f))
+  ;; => #object["[Ljava.lang.Object;" 0x64657d38 "[Ljava.lang.Object;@64657d38"]
+#+END_SRC
+
+If you are interest in the Compiler behavior of this, you may want to refer to the ~Compiler.java~ file in clojure source code.
+
+#+BEGIN_SRC java
+  static final Symbol FN = Symbol.intern("fn*");
+  static final Symbol FNONCE = (Symbol) Symbol.intern("fn*").withMeta(RT.map(Keyword.intern(null, "once"), RT.T));
+#+END_SRC
+
+#+BEGIN_SRC java
+    static class Parser implements IParser{
+        public Expr parse(C context, Object frm) {
+            ISeq form = (ISeq) frm;
+            if(context != C.RETURN)
+                return analyze(context, RT.list(RT.list(FNONCE, PersistentVector.EMPTY, form)));
+            ...
+        }
+        ...
+    }
+#+END_SRC
